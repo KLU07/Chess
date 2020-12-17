@@ -15,6 +15,16 @@ boolean myTurn = false;
 int row1, col1; //row and col clicked first
 int row2, col2; //row and col clicked second
 
+boolean zkey; //undo key
+boolean possibleToUndo = false;
+char lastPieceTaken;
+
+boolean pawnPromotion = false;
+boolean qkey;
+boolean kkey;
+boolean rkey;
+boolean bkey;
+
 //char stores a single charactetr
 char grid[][] = {
   {'R', 'B', 'N', 'Q', 'K', 'N', 'B', 'R'}, //capital = black pieces
@@ -83,7 +93,19 @@ void receiveMove() {
     grid[r2][c2] = grid[r1][c1]; //whatever was at r1 c1 will be copied over to r2 c2
     grid[r1][c1] = ' '; //clear r1 c1
     myTurn = true;
+            //INSERT PAWN PROMOTION CODE// <=======================================
   }
+  
+  //UNDO MOVE
+  if (myTurn == false) {
+    possibleToUndo = true;
+    if (zkey) {
+      grid[row1][col1] = grid[row2][col2];
+      grid[row2][col2] = lastPieceTaken;
+      myTurn = true;
+      possibleToUndo = false;
+    }
+  }  
 }
 
 
@@ -137,10 +159,27 @@ void mouseReleased() {
       if (!(row2 == row1 && col2 == col1)) {
         grid[row2][col2] = grid[row1][col1];
         grid[row1][col1] = ' ';
+        grid[row1][col1] = lastPieceTaken;
         myClient.write(row1 + "," + col1 + "," + row2 + "," + col2);
         firstClick = true;
         myTurn = false;
       }
     }
   }
+}
+
+void keyPressed() {
+  if (key == 'z' || key == 'Z') zkey = true;
+  if (key == 'q' || key == 'Q') qkey = true;
+  if (key == 'r' || key == 'R') rkey = true;
+  if (key == 'k' || key == 'K') kkey = true;
+  if (key == 'b' || key == 'B') bkey = true;
+}
+
+void keyReleased() {
+  if (key == 'z' || key == 'Z') zkey = false;
+  if (key == 'q' || key == 'Q') qkey = false;
+  if (key == 'r' || key == 'R') rkey = false;
+  if (key == 'k' || key == 'K') kkey = false;
+  if (key == 'b' || key == 'B') bkey = false;
 }
