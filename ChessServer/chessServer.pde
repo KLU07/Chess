@@ -15,10 +15,15 @@ boolean myTurn = true;
 int row1, col1; //row and col clicked first
 int row2, col2; //row and col clicked second
 
-boolean zkey;
+boolean zkey; //undo key
 boolean possibleToUndo = false;
-
 char lastPieceTaken;
+
+boolean pawnPromotion = false;
+boolean qkey;
+boolean kkey;
+boolean rkey;
+boolean bkey;
 
 //char stores a single character
 char grid[][] = {
@@ -35,6 +40,7 @@ char grid[][] = {
 
 void setup() {
   size(800, 800);
+  textAlign(CENTER);
 
   myServer = new Server(this, 1234);
 
@@ -87,11 +93,29 @@ void receiveMove() {
     int c1 = int(incoming.substring(2, 3));
     int r2 = int(incoming.substring(4, 5));
     int c2 = int(incoming.substring(6, 7)); 
-    //int ID = int(incoming.substring(8, 9));
+    //int ID = int(incoming.substring(8, 9)); //ID determines whether it is a move, take back or pawn promotion command
     grid[r2][c2] = grid[r1][c1]; //whatever was at r1 c1 will be copied over to r2 c2
     grid[r1][c1] = ' '; //clear r1 c1
-    myTurn = true;          
+    myTurn = true;  
+    
     //check when making move - if pawn reaches other side - then open menu for pawn promotion
+    if (grid[row2][col2] == 'p' && col2 == 0) {
+      textSize(80);
+      fill(0);
+      text("Pawn Promoted", 400, 200);
+      fill(0);
+      textSize(30);
+      text("Press Q to select Queen", width/2, 300);
+      text("Press K to select King", width/2, 350);
+      text("Press R to select Rook", width/2, 400);
+      text("Press B to select Bishop", width/2, 450);
+      
+      //open menu to select pawn promotion
+      if (qkey) grid[row2][col2] = 'q';
+      if (kkey) grid[row2][col2] = 'k';
+      if (rkey) grid[row2][col2] = 'r';                    //    INSERT PAWN PROMOTION CODE
+      if (bkey) grid[row2][col2] = 'b';                    //<==============================
+    }
   }
 
   //UNDO MOVE
@@ -157,7 +181,7 @@ void mouseReleased() {
         grid[row2][col2] = grid[row1][col1];
         grid[row1][col1] = ' ';
         grid[row1][col1] = lastPieceTaken;
-        myServer.write(row1 + "," + col1 + "," + row2 + "," + col2);
+        myServer.write(row1 + "," + col1 + "," + row2 + "," + col2); //add  + "," + 1 (or whatever value)
         firstClick = true;
         myTurn = false;
       }
@@ -168,8 +192,16 @@ void mouseReleased() {
 
 void keyPressed() {
   if (key == 'z' || key == 'Z') zkey = true;
+  if (key == 'q' || key == 'Q') qkey = true;
+  if (key == 'r' || key == 'R') rkey = true;
+  if (key == 'k' || key == 'K') kkey = true;
+  if (key == 'b' || key == 'B') bkey = true;
 }
 
 void keyReleased() {
   if (key == 'z' || key == 'Z') zkey = false;
+  if (key == 'q' || key == 'Q') qkey = false;
+  if (key == 'r' || key == 'R') rkey = false;
+  if (key == 'k' || key == 'K') kkey = false;
+  if (key == 'b' || key == 'B') bkey = false;
 }
