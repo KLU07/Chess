@@ -16,24 +16,26 @@ int row1, col1; //row and col clicked first
 int row2, col2; //row and col clicked second
 
 boolean zkey;
-boolean undo;
+boolean possibleToUndo = false;
+
+char lastPieceTaken;
 
 //char stores a single character
 char grid[][] = {
   {'R', 'B', 'N', 'Q', 'K', 'N', 'B', 'R'}, //capital = black pieces
-  {'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'},
-  {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-  {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-  {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-  {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-  {'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'},
+  {'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'}, 
+  {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 
+  {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 
+  {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 
+  {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 
+  {'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'}, 
   {'r', 'b', 'n', 'q', 'k', 'n', 'b', 'r'}, //lowercase = white pieces
 };
 
 
 void setup() {
   size(800, 800);
-  
+
   myServer = new Server(this, 1234);
 
   firstClick = true;
@@ -84,15 +86,22 @@ void receiveMove() {
     int r1 = int(incoming.substring(0, 1)); 
     int c1 = int(incoming.substring(2, 3));
     int r2 = int(incoming.substring(4, 5));
-    int c2 = int(incoming.substring(6, 7));    
+    int c2 = int(incoming.substring(6, 7)); 
+    //int ID = int(incoming.substring(8, 9));
     grid[r2][c2] = grid[r1][c1]; //whatever was at r1 c1 will be copied over to r2 c2
     grid[r1][c1] = ' '; //clear r1 c1
-    myTurn = true;
+    myTurn = true;          
+    //check when making move - if pawn reaches other side - then open menu for pawn promotion
   }
-  
+
+  //UNDO MOVE
   if (myTurn == false) {
+    possibleToUndo = true;
     if (zkey) {
-      undo = true;
+      grid[row1][col1] = grid[row2][col2];
+      grid[row2][col2] = lastPieceTaken;
+      myTurn = true;
+      possibleToUndo = false;
     }
   }
 }
@@ -103,8 +112,8 @@ void drawBoard() {
     for (int c = 0; c < 8; c++) {
       if ((c%2) == (r%2)) {
         fill(lightbrown);
-       } else {
-        fill(darkbrown); 
+      } else {
+        fill(darkbrown);
       }
       stroke(0);
       strokeWeight(1);
@@ -147,13 +156,13 @@ void mouseReleased() {
       if (!(row2 == row1 && col2 == col1)) {
         grid[row2][col2] = grid[row1][col1];
         grid[row1][col1] = ' ';
+        grid[row1][col1] = lastPieceTaken;
         myServer.write(row1 + "," + col1 + "," + row2 + "," + col2);
         firstClick = true;
-        myTurn = false;      
+        myTurn = false;
       }
     }
   }
-
 }
 
 
