@@ -5,6 +5,7 @@ Server myServer;
 color lightbrown = #FFFFC3;
 color darkbrown = #D8864E;
 color red = #F45D4C;
+color cyan = #52C7B4;
 
 PImage wrook, wbishop, wknight, wqueen, wking, wpawn;
 PImage brook, bbishop, bknight, bqueen, bking, bpawn;
@@ -19,11 +20,11 @@ boolean zkey; //undo key
 boolean possibleToUndo = false;
 char lastPieceTaken;
 
-boolean pawnPromotion = false;
 boolean qkey;
 boolean kkey;
 boolean rkey;
 boolean bkey;
+char pawnPromote;
 
 //char stores a single character
 char grid[][] = {
@@ -67,6 +68,31 @@ void draw() {
   drawPieces();
   receiveMove();
   highlight();
+  promotionMessage();
+}
+
+
+void promotionMessage() {
+    if (grid[row2][col2] == 'p' && row2 == 0) {
+      noStroke();
+      fill(cyan);
+      rect(75, 230, 650, 350);
+      fill(0);
+      textSize(80);
+      text("Pawn Promoted", 400, 320);
+      fill(0);
+      textSize(25);
+      text("Press Q to select Queen", width/2, 390);
+      text("Press K to select King", width/2, 440);
+      text("Press R to select Rook", width/2, 490);
+      text("Press B to select Bishop", width/2, 540);
+      
+      //open menu to select pawn promotion
+      if (qkey) grid[row2][col2] = 'q';
+      if (kkey) grid[row2][col2] = 'k';
+      if (rkey) grid[row2][col2] = 'r'; 
+      if (bkey) grid[row2][col2] = 'b';
+    }  
 }
 
 
@@ -97,28 +123,9 @@ void receiveMove() {
     grid[r2][c2] = grid[r1][c1]; //whatever was at r1 c1 will be copied over to r2 c2
     grid[r1][c1] = ' '; //clear r1 c1
     myTurn = true;  
-    
-    //check when making move - if pawn reaches other side - then open menu for pawn promotion
-    if (grid[row2][col2] == 'p' && col2 == 0) {
-      textSize(80);
-      fill(0);
-      text("Pawn Promoted", 400, 200);
-      fill(0);
-      textSize(30);
-      text("Press Q to select Queen", width/2, 300);
-      text("Press K to select King", width/2, 350);
-      text("Press R to select Rook", width/2, 400);
-      text("Press B to select Bishop", width/2, 450);
-      
-      //open menu to select pawn promotion
-      if (qkey) grid[row2][col2] = 'q';
-      if (kkey) grid[row2][col2] = 'k';
-      if (rkey) grid[row2][col2] = 'r';                    //    INSERT PAWN PROMOTION CODE
-      if (bkey) grid[row2][col2] = 'b';                    //<==============================
-    }
   }
 
-  //UNDO MOVE
+  //undo move
   if (myTurn == false) {
     possibleToUndo = true;
     if (zkey) {
@@ -184,6 +191,10 @@ void mouseReleased() {
         myServer.write(row1 + "," + col1 + "," + row2 + "," + col2); //add  + "," + 1 (or whatever value)
         firstClick = true;
         myTurn = false;
+        if (grid[row2][col2] == 'p' && row2 == 0) {
+          promotionMessage();
+        }
+        
       }
     }
   }
