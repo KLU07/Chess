@@ -20,11 +20,21 @@ boolean zkey; //undo key
 boolean possibleToUndo = false;
 char lastPieceTaken;
 
+boolean promote = false;
 boolean qkey;
 boolean kkey;
 boolean rkey;
 boolean bkey;
 char pawnPromote;
+
+int pawnPromoted;
+int moved;
+int promoteQ;
+int promoteK;
+int promoteR;
+int promoteB;
+
+char promotedPiece;
 
 //char stores a single charactetr
 char grid[][] = {
@@ -35,12 +45,13 @@ char grid[][] = {
   {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
   {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
   {'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'},
-  {'r', 'b', 'n', 'q', 'k', 'n', 'b', 'r'}, //lowercase = white pieces
+  {'r', 'b', 'n', 'q', 'k', 'n', 'b', 'r'} //lowercase = white pieces
 };
 
 
 void setup() {
   size(800, 800);
+  textAlign(CENTER);
   
   myClient = new Client(this, "127.0.0.1", 1234);
   
@@ -72,7 +83,8 @@ void draw() {
 
 
 void promotionMessage() {
-    if (grid[row2][col2] == 'P' && row2 == 0) {
+    if (grid[row2][col2] == 'P' && row2 == 7) {
+      promote = true;
       noStroke();
       fill(cyan);
       rect(75, 230, 650, 350);
@@ -85,13 +97,31 @@ void promotionMessage() {
       text("Press K to select King", width/2, 440);
       text("Press R to select Rook", width/2, 490);
       text("Press B to select Bishop", width/2, 540);
-      
-      //open menu to select pawn promotion
-      if (qkey) grid[row2][col2] = 'Q';
-      if (kkey) grid[row2][col2] = 'K';
-      if (rkey) grid[row2][col2] = 'R';  
-      if (bkey) grid[row2][col2] = 'B';
-    }  
+
+      if (promote) {
+        if (qkey) {
+          grid[row2][col2] = 'Q';
+          //promotedPiece = grid[row2][col2];
+          myClient.write(row1 + "," + col1 + "," + row2 + "," + col2 + "," + "promoteQ");
+          //promote = false; 
+        }
+        if (kkey) {
+          grid[row2][col2] = 'K';
+          myClient.write(row1 + "," + col1 + "," + row2 + "," + col2 + "," + "promoteK");
+          promote = false; 
+        }
+        if (rkey) {
+          grid[row2][col2] = 'R'; 
+          myClient.write(row1 + "," + col1 + "," + row2 + "," + col2 + "," + "promoteR");
+          promote = false;   
+        }
+        if (bkey) {
+          grid[row2][col2] = 'B';
+          myClient.write(row1 + "," + col1 + "," + row2 + "," + col2 + "," + "promoteB");
+          promote = false;   
+        }
+      }
+    }
 }
 
 
@@ -112,14 +142,40 @@ void highlight() {
 void receiveMove() {
   if (myClient.available() > 0) {
     String incoming = myClient.readString();
-    int r1 = int(incoming.substring(0, 1)); 
-    int c1 = int(incoming.substring(2, 3));
-    int r2 = int(incoming.substring(4, 5));
-    int c2 = int(incoming.substring(6, 7));    
-    grid[r2][c2] = grid[r1][c1]; //whatever was at r1 c1 will be copied over to r2 c2
-    grid[r1][c1] = ' '; //clear r1 c1
-    myTurn = true;
-  }
+      //add another message type (ie. 1 = queen, 2 = king, etc)
+      int r1 = int(incoming.substring(0, 1)); 
+      int c1 = int(incoming.substring(2, 3));
+      int r2 = int(incoming.substring(4, 5));
+      int c2 = int(incoming.substring(6, 7)); 
+      grid[r2][c2] = grid[r1][c1]; //whatever was at r1 c1 will be copied over to r2 c2
+      grid[r1][c1] = ' '; //clear r1 c1
+      myTurn = true; 
+
+      if (incoming.contains("promoteq")) { 
+        grid[r2][c2] = 'q';
+        myTurn = true;
+        promote = false;
+      }
+      
+      if (incoming.contains("promotek")) { 
+        grid[r2][c2] = 'k'; 
+        myTurn = true;
+        promote = false;
+      } 
+      
+      if (incoming.contains("promoter")) { 
+        grid[r2][c2] = 'r';
+        myTurn = true;
+        promote = false;
+      } 
+      
+      if (incoming.contains("promoteb")) { 
+        grid[r2][c2] = 'b';
+        myTurn = true;
+        promote = false;
+      }      
+    }
+
   
   //undo move
   if (myTurn == false) {
@@ -130,6 +186,7 @@ void receiveMove() {
       myTurn = true;
       possibleToUndo = false;
     }
+
   }  
 }
 
@@ -185,12 +242,13 @@ void mouseReleased() {
         grid[row2][col2] = grid[row1][col1];
         grid[row1][col1] = ' ';
         grid[row1][col1] = lastPieceTaken;
-        myClient.write(row1 + "," + col1 + "," + row2 + "," + col2);
+        myClient.write(row1 + "," + col1 + "," + row2 + "," + col2 + "," + moved);
         firstClick = true;
         myTurn = false;
-        if (grid[row2][col2] == 'P' && row2 == 0) {
+        if (grid[row2][col2] == 'P' && row2 == 7) {
           promotionMessage();
-        }        
+        } 
+               
       }
     }
   }
