@@ -101,9 +101,7 @@ void promotionMessage() {
       if (promote) {
         if (qkey) {
           grid[row2][col2] = 'q'; 
-          //promotedPiece = grid[row2][col2];
-          myServer.write(row1 + "," + col1 + "," + row2 + "," + col2 + "," + "promoteq");
-          //promote = false;       
+          myServer.write(row1 + "," + col1 + "," + row2 + "," + col2 + "," + "promoteq");      
         }
         if (kkey) {
           grid[row2][col2] = 'k';
@@ -144,7 +142,6 @@ void receiveMove() {
   Client myClient = myServer.available();
   if (myClient != null) {
     String incoming = myClient.readString();
-            //add another message type (ie. 1 = queen, 2 = king, etc)
     int r1 = int(incoming.substring(0, 1)); 
     int c1 = int(incoming.substring(2, 3));
     int r2 = int(incoming.substring(4, 5));
@@ -153,10 +150,8 @@ void receiveMove() {
     grid[r1][c1] = ' '; //clear r1 c1
     myTurn = true; 
 
-      if (incoming.contains("promoteQ")) {        //add another message type (ie. 1 = queen, 2 = king, etc) 
-        println("incoming contains promoteQ");
+      if (incoming.contains("promoteQ")) {        
         grid[r2][c2] = 'Q';
-        println("promoted piece error");
         myTurn = true;
         promote = false; 
       }
