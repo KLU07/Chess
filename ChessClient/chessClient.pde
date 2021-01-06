@@ -101,9 +101,7 @@ void promotionMessage() {
       if (promote) {
         if (qkey) {
           grid[row2][col2] = 'Q';
-          //promotedPiece = grid[row2][col2];
           myClient.write(row1 + "," + col1 + "," + row2 + "," + col2 + "," + "promoteQ");
-          //promote = false; 
         }
         if (kkey) {
           grid[row2][col2] = 'K';
@@ -142,7 +140,6 @@ void highlight() {
 void receiveMove() {
   if (myClient.available() > 0) {
     String incoming = myClient.readString();
-      //add another message type (ie. 1 = queen, 2 = king, etc)
       int r1 = int(incoming.substring(0, 1)); 
       int c1 = int(incoming.substring(2, 3));
       int r2 = int(incoming.substring(4, 5));
