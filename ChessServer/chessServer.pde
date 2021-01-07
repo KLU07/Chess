@@ -36,6 +36,8 @@ int promoteb;
 
 int promotedPiece;
 
+int undo;
+
 //char stores a single character
 char grid[][] = {
   {'R', 'B', 'N', 'Q', 'K', 'N', 'B', 'R'}, //capital = black pieces
@@ -146,9 +148,12 @@ void receiveMove() {
     int c1 = int(incoming.substring(2, 3));
     int r2 = int(incoming.substring(4, 5));
     int c2 = int(incoming.substring(6, 7)); 
-    grid[r2][c2] = grid[r1][c1]; //whatever was at r1 c1 will be copied over to r2 c2
-    grid[r1][c1] = ' '; //clear r1 c1
-    myTurn = true; 
+    
+    if (incoming.contains("moved")) {
+      grid[r2][c2] = grid[r1][c1]; //whatever was at r1 c1 will be copied over to r2 c2
+      grid[r1][c1] = ' '; //clear r1 c1
+      myTurn = true;     
+    }
 
       if (incoming.contains("promoteQ")) {        
         grid[r2][c2] = 'Q';
@@ -172,7 +177,14 @@ void receiveMove() {
         grid[r2][c2] = 'B';
         myTurn = true;
         promote = false;
-      }      
+      } 
+      
+      if (incoming.contains("undo")) {        //make undo work on both server and client
+        grid[r1][c1] = grid[r2][c2];
+        grid[r2][c2] = lastPieceTaken;  
+        myTurn = true;
+        possibleToUndo = false;
+      }
   }
 
   //undo move
@@ -181,8 +193,10 @@ void receiveMove() {
     if (zkey) {
       grid[row1][col1] = grid[row2][col2];
       grid[row2][col2] = lastPieceTaken;
+      myServer.write(row1 + "," + col1 + "," + row2 + "," + col2 + "," + "undo");
       myTurn = true;
       possibleToUndo = false;
+
     }
   }
 }
@@ -238,7 +252,7 @@ void mouseReleased() {
         grid[row2][col2] = grid[row1][col1];
         grid[row1][col1] = ' ';
         grid[row1][col1] = lastPieceTaken;
-        myServer.write(row1 + "," + col1 + "," + row2 + "," + col2 + "," + moved);
+        myServer.write(row1 + "," + col1 + "," + row2 + "," + col2 + "," + "moved");
         firstClick = true;
         myTurn = false;
         if (grid[row2][col2] == 'p' && row2 == 0) {
